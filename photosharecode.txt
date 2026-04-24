@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>PhotoShare</title>
+
+  <style>
+ 
+    body {
+      font-family: Arial;
+      background: #eee;
+      margin: 0;
+    }
+
+    .bar {
+      background: #2196F3;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bar-search {
+      display: flex;
+      gap: 6px;
+      flex: 1;
+      max-width: 320px;
+      position: relative;
+    }
+    .bar-search input {
+      margin: 0;
+      padding: 6px 10px;
+      border-radius: 20px;
+      border: none;
+      font-size: 0.9em;
+      width: 100%;
+      box-sizing: border-box;
+      color: #333;
+    }
+    .bar-search input:focus { outline: 2px solid #fff; }
+    .bar-search button {
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: white;
+      color: #2196F3;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .bar-search button:hover { background: #e3f2fd; }
+
+        .search-dropdown {
+      position: absolute;
+      top: 38px;
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      z-index: 100;
+      overflow: hidden;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .search-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.15s;
+    }
+    .search-item:last-child { border-bottom: none; }
+    .search-item:hover      { background: #e3f2fd; }
+    .search-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #2196F3;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1em;
+      flex-shrink: 0;
+    }
+    .search-info  { flex: 1; }
+    .search-name  { font-weight: bold; color: #333; font-size: 0.95em; }
+    .search-meta  { color: #888; font-size: 0.8em; }
+    .search-uid   { color: #2196F3; font-size: 0.78em; font-family: monospace; }
+    .search-no    { padding: 14px; color: #888; text-align: center; font-size: 0.9em; }
+
+    /* ── My-ID chip in navbar ─────────────────────────────── */
+    .my-id-chip {
+      font-size: 0.75em;
+      font-family: monospace;
+      background: rgba(255,255,255,0.18);
+      border-radius: 10px;
+      padding: 2px 8px;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .my-id-chip:hover { background: rgba(255,255,255,0.32); }
+
+       .box {
+      max-width: 600px;
+      margin: 30px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+   
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0 12px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 8px 16px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover { background: #1565C0; }
+    .red  { color: red; font-size: 0.9em; }
+    .link { color: #2196F3; cursor: pointer; text-decoration: underline; }
+
+       img.photo {
+      width: 100%;
+      border-radius: 6px 6px 0 0;
+      display: block;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    .card-body { padding: 10px; }
+    .cmt {
+      font-size: 0.85em;
+      padding: 3px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .row { display: flex; gap: 6px; margin-top: 8px; }
+    .row input  { margin: 0; flex: 1; }
+    .row button { margin: 0; }
+
+        .stats-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .stats-table th {
+      background: #2196F3;
+      color: white;
+      padding: 10px;
+      text-align: left;
+    }
+    .stats-table td { padding: 10px; border-bottom: 1px solid #ddd; }
+    .stats-table tr:last-child td { border-bottom: none; }
+    .stats-table tr:hover td      { background: #f5f5f5; }
+    .big-num { font-size: 1.4em; font-weight: bold; color: #2196F3; }
+
+        .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+    .profile-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #2196F3;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8em;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .profile-name { font-size: 1.3em; font-weight: bold; }
+    .profile-meta { color: #666; font-size: 0.9em; margin-top: 2px; }
+    .profile-uid-badge {
+      display: inline-block;
+      margin-top: 6px;
+      background: #e3f2fd;
+      color: #1565C0;
+      border: 1px solid #90caf9;
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 0.82em;
+      font-family: monospace;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      user-select: all;
+    }
+    .profile-uid-badge:hover { background: #bbdefb; }
+    .profile-stats { display: flex; gap: 18px; margin: 14px 0 18px; }
+    .profile-stat  { text-align: center; }
+    .profile-stat .num { font-size: 1.3em; font-weight: bold; color: #2196F3; }
+    .profile-stat .lbl { font-size: 0.78em; color: #888; }
+    .back-btn { background: #eee; color: #333; margin-bottom: 14px; }
+    .back-btn:hover { background: #ddd; }
+  </style>
+</head>
+
+
+<body>
+
+ 
+  <div class="bar" id="bar" style="display:none">
+    <div style="display:flex; flex-direction:column; line-height:1.3">
+      <span id="barName" style="white-space:nowrap; font-weight:bold"></span>
+      <span class="my-id-chip" id="barUid" title="Your unique ID — click to copy"></span>
+    </div>
+    <div class="bar-search" id="searchBox">
+      <input id="searchInput" placeholder="🔍 Name or #PS-ID..." autocomplete="off">
+      <button id="searchBtn">Search</button>
+      <div class="search-dropdown" id="searchDropdown" style="display:none"></div>
+    </div>
+    <button id="logoutBtn">Log Out</button>
+  </div>
+
+<!-- Registration -->
+  <div class="box" id="regBox">
+    <h3>Register</h3>
+    <label>Gmail</label>
+    <input id="r_email" type="email" placeholder="you@gmail.com">
+    <label>Name</label>
+    <input id="r_name" placeholder="Full name">
+    <label>Gender</label>
+    <select id="r_gender">
+      <option value="">Select</option>
+      <option>Male</option>
+      <option>Female</option>
+      <option>Other</option>
+    </select>
+    <label>Age</label>
+    <input id="r_age" type="number" placeholder="Age">
+    <label>Password</label>
+    <input id="r_pass" type="password" placeholder="Min 6 chars">
+    <p class="red" id="r_err"></p>
+    <button id="registerBtn">Register</button>
+    <p>Have account? <span class="link" id="goLogin">Sign In</span></p>
+  </div>
+
+  <!-- Login -->
+  <div class="box" id="loginBox" style="display:none">
+    <h3>Sign In</h3>
+    <label>Gmail</label>
+    <input id="l_email" type="email" placeholder="you@gmail.com">
+    <label>Password</label>
+    <input id="l_pass" type="password" placeholder="Password">
+    <p class="red" id="l_err"></p>
+    <button id="loginBtn">Sign In</button>
+    <p>No account? <span class="link" id="goReg">Register</span></p>
+  </div>
+
+  <!-- Feed -->
+  <div class="box" id="feedBox" style="display:none; max-width:650px">
+    <h3>📊 Site Stats</h3>
+    <table class="stats-table">
+      <thead>
+        <tr><th>Metric</th><th>Count</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Total Photos Posted</td>         <td><span class="big-num" id="statPosts">0</span></td></tr>
+        <tr><td> Total Likes</td>                 <td><span class="big-num" id="statLikes">0</span></td></tr>
+        <tr><td> Total Comments</td>              <td><span class="big-num" id="statComments">0</span></td></tr>
+        <tr><td> Total Interactions</td>          <td><span class="big-num" id="statTotal">0</span></td></tr>
+        <tr><td> Registered Users</td>            <td><span class="big-num" id="statUsers">0</span></td></tr>
+      </tbody>
+    </table>
+
+    <hr style="margin:20px 0">
+
+    <h3>Upload Photo</h3>
+    <input type="file" id="file" accept="image/*">
+    <img id="prev" src="" style="display:none; max-width:100%; margin:8px 0; border-radius:4px">
+    <label>Caption</label>
+    <input id="caption" placeholder="Write something...">
+    <button id="postBtn">Post</button>
+    <p class="red" id="up_err"></p>
+
+    <hr style="margin:20px 0">
+
+    <h3>Photos</h3>
+    <div id="feed"></div>
+  </div>
+
+  <!-- User Profile Page -->
+  <div class="box" id="profileBox" style="display:none; max-width:650px">
+    <button class="back-btn" id="backBtn">← Back to Feed</button>
+    <div class="profile-header">
+      <div class="profile-avatar" id="profileAvatar"></div>
+      <div>
+        <div class="profile-name" id="profileName"></div>
+        <div class="profile-meta" id="profileMeta"></div>
+        <div class="profile-uid-badge" id="profileUid" title="Click to copy"></div>
+      </div>
+    </div>
+    <div class="profile-stats">
+      <div class="profile-stat">
+        <div class="num" id="profilePostCount">0</div>
+        <div class="lbl">Posts</div>
+      </div>
+      <div class="profile-stat">
+        <div class="num" id="profileLikeCount">0</div>
+        <div class="lbl">Likes</div>
+      </div>
+      <div class="profile-stat">
+        <div class="num" id="profileCommentCount">0</div>
+        <div class="lbl">Comments</div>
+      </div>
+    </div>
+    <hr style="margin:10px 0 18px">
+    <h3 id="profilePhotosTitle">Photos</h3>
+    <div id="profileFeed"></div>
+  </div>
+
+ 
+  <script>
+
+
+    var users  = JSON.parse(localStorage.getItem('users')  || '[]');
+    var photos = JSON.parse(localStorage.getItem('photos') || '[]');
+    var me = null;
+
+   
+    function genUID() {
+      var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      var id;
+      do {
+        id = 'PS-';
+        for (var i = 0; i < 6; i++) {
+          id += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+      } while (users.some(function(u) { return u.uid === id; }));
+      return id;
+    }
+
+    // Back-fill UIDs for users registered before this feature
+    users.forEach(function(u) { if (!u.uid) u.uid = genUID(); });
+    localStorage.setItem('users', JSON.stringify(users));
+
+
+    function val(id)  { return document.getElementById(id).value.trim(); }
+    function el(id)   { return document.getElementById(id); }
+    function err(id, msg) { el(id).textContent = msg; }
+    function safe(s)  { return String(s).replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    function save() {
+      localStorage.setItem('users',  JSON.stringify(users));
+      localStorage.setItem('photos', JSON.stringify(photos));
+    }
+
+    function copyText(text) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+      } else {
+        var t = document.createElement('textarea');
+        t.value = text;
+        document.body.appendChild(t);
+        t.select();
+        document.execCommand('copy');
+        document.body.removeChild(t);
+      }
+    }
+
+    var allBoxes = ['regBox', 'loginBox', 'feedBox', 'profileBox'];
+    function show(id) {
+      allBoxes.forEach(function(b) {
+        el(b).style.display = b === id ? '' : 'none';
+      });
+    }
+
+   
+    function updateStats() {
+      var totalLikes    = photos.reduce(function(s, p) { return s + p.likes.length;    }, 0);
+      var totalComments = photos.reduce(function(s, p) { return s + p.comments.length; }, 0);
+      el('statPosts').textContent    = photos.length;
+      el('statLikes').textContent    = totalLikes;
+      el('statComments').textContent = totalComments;
+      el('statTotal').textContent    = totalLikes + totalComments;
+      el('statUsers').textContent    = users.length;
+    }
+
+   
+    function register() {
+      var email = val('r_email').toLowerCase();
+      var name  = val('r_name');
+      var gen   = val('r_gender');
+      var age   = parseInt(val('r_age'));
+      var pass  = val('r_pass');
+      if (!email.endsWith('@gmail.com'))                     return err('r_err', 'Must be @gmail.com');
+      if (!name)                                             return err('r_err', 'Name required');
+      if (!gen)                                              return err('r_err', 'Select gender');
+      if (!age || age < 13 || age > 120)                    return err('r_err', 'Valid age 13-120');
+      if (pass.length < 6)                                   return err('r_err', 'Password min 6 chars');
+      if (users.some(function(u) { return u.email === email; })) return err('r_err', 'Email already used');
+      var uid = genUID();
+      users.push({ email: email, name: name, gen: gen, age: age, pass: pass, uid: uid });
+      save();
+      alert('Registered! Your unique ID is ' + uid + '\nPlease sign in.');
+      show('loginBox');
+    }
+
+    function login() {
+      var email = val('l_email').toLowerCase();
+      var pass  = val('l_pass');
+      if (!email.endsWith('@gmail.com')) return err('l_err', 'Must be @gmail.com');
+      me = users.find(function(u) { return u.email === email && u.pass === pass; });
+      if (!me) return err('l_err', 'Wrong email or password');
+      el('bar').style.display = 'flex';
+      el('barName').textContent = 'Hi, ' + me.name;
+      el('barUid').textContent  = me.uid;
+      el('barUid').title = 'Your ID: ' + me.uid + ' — click to copy';
+      show('feedBox');
+      updateStats();
+      renderFeed();
+    }
+
+    function logout() {
+      me = null;
+      el('bar').style.display = 'none';
+      closeSearch();
+      show('loginBox');
+    }
+
+ 
+    function preview() {
+      var file = el('file').files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        el('prev').src = e.target.result;
+        el('prev').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function post() {
+      var img = el('prev');
+      if (!img.src || img.style.display === 'none') return err('up_err', 'Pick a photo first');
+      photos.unshift({
+        id: Date.now(),
+        user: me.name,
+        userEmail: me.email,
+        img: img.src,
+        caption: val('caption'),
+        likes: [],
+        comments: []
+      });
+      save();
+      el('file').value = '';
+      el('caption').value = '';
+      img.src = '';
+      img.style.display = 'none';
+      err('up_err', '');
+      updateStats();
+      renderFeed();
+      alert('Posted!');
+    }
+
+   
+    function like(pid) {
+      var p = photos.find(function(x) { return x.id === pid; });
+      var i = p.likes.indexOf(me.email);
+      if (i === -1) p.likes.push(me.email); else p.likes.splice(i, 1);
+      save();
+      updateStats();
+      renderFeed();
+    }
+
+    function comment(pid) {
+      var input = el('ci' + pid);
+      var text  = input.value.trim();
+      if (!text) return;
+      var p = photos.find(function(x) { return x.id === pid; });
+      p.comments.push({ user: me.name, text: text });
+      save();
+      updateStats();
+      renderFeed();
+    }
+
+   
+    function renderCards(container, photoList, isProfile) {
+      if (!photoList.length) {
+        container.innerHTML = '<p style="color:#888">No photos yet.</p>';
+        return;
+      }
+      container.innerHTML = '';
+      photoList.forEach(function(p) {
+        var liked  = p.likes.indexOf(me.email) !== -1;
+        var cmts   = p.comments.map(function(c) {
+          return '<div class="cmt"><b>' + safe(c.user) + ':</b> ' + safe(c.text) + '</div>';
+        }).join('');
+        var owner  = users.find(function(u) { return u.name === p.user; });
+        var uidTag = owner
+          ? ' <span style="font-size:0.75em;color:#90a4ae;font-family:monospace">' + safe(owner.uid) + '</span>'
+          : '';
+
+        var d = document.createElement('div');
+        d.className = 'card';
+        d.innerHTML =
+          '<img class="photo" src="' + p.img + '">' +
+          '<div class="card-body">' +
+            (isProfile ? '' : '<b class="uname-link" style="cursor:pointer;color:#2196F3">' + safe(p.user) + '</b>' + uidTag) +
+            (p.caption ? '<p>' + safe(p.caption) + '</p>' : '') +
+            '<button class="likeBtn">' + (liked ? '❤️' : '🤍') + ' ' + p.likes.length + ' likes</button>' +
+            '<div style="margin-top:8px">' + cmts + '</div>' +
+            '<div class="row">' +
+              '<input id="ci' + p.id + '" placeholder="Comment...">' +
+              '<button class="cmtBtn">Send</button>' +
+            '</div>' +
+          '</div>';
+
+        container.appendChild(d);
+
+        if (!isProfile) {
+          var ulink = d.querySelector('.uname-link');
+          if (ulink) ulink.addEventListener('click', function() { openProfileByName(p.user); });
+        }
+        d.querySelector('.likeBtn').addEventListener('click', function() { like(p.id); });
+        d.querySelector('.cmtBtn').addEventListener('click',  function() { comment(p.id); });
+        d.querySelector('#ci' + p.id).addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') comment(p.id);
+        });
+      });
+    }
+
+    function renderFeed() {
+      renderCards(el('feed'), photos, false);
+    }
+
+   
+    function doSearch() {
+      var q  = el('searchInput').value.trim().toLowerCase();
+      var dd = el('searchDropdown');
+      if (!q) { dd.style.display = 'none'; return; }
+
+      var qClean  = q.replace(/^#/, '');
+      var results = users.filter(function(u) {
+        return u.name.toLowerCase().includes(qClean)  ||
+               u.email.toLowerCase().includes(qClean) ||
+               u.uid.toLowerCase().includes(qClean);
+      });
+
+      if (!results.length) {
+        dd.innerHTML = '<div class="search-no">No users found for "' + safe(q) + '"</div>';
+      } else {
+        dd.innerHTML = results.map(function(u) {
+          var initial    = u.name.charAt(0).toUpperCase();
+          var userPhotos = photos.filter(function(p) { return p.user === u.name; });
+          return '<div class="search-item" data-uid="' + safe(u.uid) + '">' +
+            '<div class="search-avatar">' + initial + '</div>' +
+            '<div class="search-info">' +
+              '<div class="search-name">' + safe(u.name) + '</div>' +
+              '<div class="search-meta">' + safe(u.gen) + ' · Age ' + u.age + ' · ' +
+                userPhotos.length + ' post' + (userPhotos.length !== 1 ? 's' : '') + '</div>' +
+              '<div class="search-uid">' + safe(u.uid) + '</div>' +
+            '</div></div>';
+        }).join('');
+
+        dd.querySelectorAll('.search-item').forEach(function(item) {
+          item.addEventListener('click', function() {
+            openProfileByUID(item.getAttribute('data-uid'));
+          });
+        });
+      }
+      dd.style.display = 'block';
+    }
+
+    function closeSearch() {
+      el('searchDropdown').style.display = 'none';
+      el('searchInput').value = '';
+    }
+
+        function openProfile(u) {
+      closeSearch();
+      if (!u) return;
+      var userPhotos    = photos.filter(function(p) { return p.user === u.name; });
+      var totalLikes    = userPhotos.reduce(function(s, p) { return s + p.likes.length;    }, 0);
+      var totalComments = userPhotos.reduce(function(s, p) { return s + p.comments.length; }, 0);
+
+      el('profileAvatar').textContent       = u.name.charAt(0).toUpperCase();
+      el('profileName').textContent         = u.name;
+      el('profileMeta').textContent         = u.gen + ' · Age ' + u.age + ' · ' + u.email;
+      el('profileUid').textContent          = u.uid + ' 📋';
+      el('profileUid').title                = 'Click to copy: ' + u.uid;
+      el('profilePostCount').textContent    = userPhotos.length;
+      el('profileLikeCount').textContent    = totalLikes;
+      el('profileCommentCount').textContent = totalComments;
+      el('profilePhotosTitle').textContent  = u.name === me.name ? 'Your Photos' : u.name + "'s Photos";
+
+      el('profileUid').onclick = function() {
+        copyText(u.uid);
+        el('profileUid').textContent = 'Copied! ✓';
+        setTimeout(function() { el('profileUid').textContent = u.uid + ' 📋'; }, 1500);
+      };
+
+      show('profileBox');
+      renderCards(el('profileFeed'), userPhotos, true);
+    }
+
+    function openProfileByName(name) {
+      openProfile(users.find(function(u) { return u.name === name; }));
+    }
+    function openProfileByUID(uid) {
+      openProfile(users.find(function(u) { return u.uid === uid; }));
+    }
+
+    
+    el('registerBtn').addEventListener('click',   register);
+    el('loginBtn').addEventListener('click',      login);
+    el('logoutBtn').addEventListener('click',     logout);
+    el('postBtn').addEventListener('click',       post);
+    el('file').addEventListener('change',         preview);
+    el('goLogin').addEventListener('click',       function() { show('loginBox'); });
+    el('goReg').addEventListener('click',         function() { show('regBox');   });
+    el('backBtn').addEventListener('click',       function() { show('feedBox'); updateStats(); renderFeed(); });
+    el('searchBtn').addEventListener('click',     doSearch);
+    el('searchInput').addEventListener('input',   doSearch);
+    el('searchInput').addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSearch(); });
+    el('barUid').addEventListener('click', function() {
+      copyText(me.uid);
+      el('barUid').textContent = 'Copied! ✓';
+      setTimeout(function() { el('barUid').textContent = me.uid; }, 1500);
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!el('searchBox').contains(e.target)) closeSearch();
+    });
+
+  </script>
+</body>
+</html>
